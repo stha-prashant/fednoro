@@ -214,6 +214,7 @@ if __name__ == '__main__':
 		if args.wandb:
 			run['test/accuracy'].append(acc)
 			run['test/max_accuracy'].append(np.max(accuracy_scores))
+			run['test/balanced_accuracy'].append(bacc)
 
 		# save model
 		if bacc > best_performance:
@@ -221,7 +222,7 @@ if __name__ == '__main__':
 		logging.info(f'best bacc: {best_performance}, now bacc: {bacc}')
 		logging.info('\n')
 	torch.save(netglob.state_dict(),  models_dir+f'/stage2_model_{rnd}.pth')
-
+	run['checkpoint/global_model'].upload(models_dir+f'/stage2_model_{rnd}.pth')
 	BACC = np.array(BACC)
 	logging.info("last:")
 	logging.info(BACC[-10:].mean())
