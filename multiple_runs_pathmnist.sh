@@ -4,7 +4,7 @@ robust_method=$"fednoro"
 dataset=$"pathmnist"
 architecture=$"resnet18"
 alpha=$"5"
-epochs=$"300"
+epochs=$"400"
 
 for seed in 1 2 3
 do
