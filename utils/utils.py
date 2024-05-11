@@ -14,75 +14,6 @@ import torch.nn.functional as F
 from sklearn.metrics import balanced_accuracy_score
 
 
-def add_noise(args, y_train, dict_users):
-    np.random.seed(args.seed)
-    gamma_s = np.array([0.] * args.num_users)
-    gamma_s[:int(args.level_n_system*args.num_users)] = 1.
-    np.random.shuffle(gamma_s)
-    gamma_c_initial = np.random.rand(args.num_users)
-    gamma_c_initial = (args.level_n_upperb - args.level_n_lowerb) * \
-        gamma_c_initial + args.level_n_lowerb
-    gamma_c = gamma_s * gamma_c_initial
-    y_train_noisy = copy.deepcopy(y_train)
-
-    if args.n_type == "instance":
-        if args.dataset == "isic2019":
-            df = pd.read_csv("your csv")
-        elif args.dataset == "ICH":
-            df = pd.read_csv("your csv")
-        else:
-            raise
-
-        soft_label = df.iloc[:, 1:args.n_classes+1].values.astype("float")
-        real_noise_level = np.zeros(args.num_users)
-        for i in np.where(gamma_c > 0)[0]:
-            sample_idx = np.array(list(dict_users[i]))
-            soft_label_this_client = soft_label[sample_idx]
-            hard_label_this_client = y_train[sample_idx]
-
-            p_t = copy.deepcopy(soft_label_this_client[np.arange(
-                soft_label_this_client.shape[0]), hard_label_this_client])
-            p_f = 1 - p_t
-            p_f = p_f / p_f.sum()
-            # Choose noisy samples base on the misclassification probability.
-            noisy_idx = np.random.choice(np.arange(len(sample_idx)), size=int(
-                gamma_c[i]*len(sample_idx)), replace=False, p=p_f)
-
-            for j in noisy_idx:
-                soft_label_this_client[j][hard_label_this_client[j]] = 0.
-                soft_label_this_client[j] = soft_label_this_client[j] / \
-                    soft_label_this_client[j].sum()
-                # Choose a noisy label base on the classification probability.
-                # The noisy label is different from the initial label.
-                y_train_noisy[sample_idx[j]] = np.random.choice(
-                    np.arange(args.n_classes), p=soft_label_this_client[j])
-
-            noise_ratio = np.mean(
-                y_train[sample_idx] != y_train_noisy[sample_idx])
-            logging.info("Client %d, noise level: %.4f, real noise ratio: %.4f" % (
-                i, gamma_c[i], noise_ratio))
-            real_noise_level[i] = noise_ratio
-
-    elif args.n_type == "random":
-        real_noise_level = np.zeros(args.num_users)
-        for i in np.where(gamma_c > 0)[0]:
-            sample_idx = np.array(list(dict_users[i]))
-            prob = np.random.rand(len(sample_idx))
-            noisy_idx = np.where(prob <= gamma_c[i])[0]
-            y_train_noisy[sample_idx[noisy_idx]] = np.random.randint(
-                0, args.n_classes, len(noisy_idx))
-            noise_ratio = np.mean(
-                y_train[sample_idx] != y_train_noisy[sample_idx])
-            logging.info("Client %d, noise level: %.4f (%.4f), real noise ratio: %.4f" % (
-                i, gamma_c[i], gamma_c[i] * 0.9, noise_ratio))
-            real_noise_level[i] = noise_ratio
-
-    else:
-        raise NotImplementedError
-
-    return (y_train_noisy, gamma_s, real_noise_level)
-
-
 def sigmoid_rampup(current, begin, end):
     """Exponential rampup from https://arxiv.org/abs/1610.02242"""
     current = np.clip(current, begin, end)
@@ -200,4 +131,4 @@ def set_output_files(args):
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
     logging.info(str(args))
     writer = SummaryWriter(tensorboard_dir)
-    return writer, models_dir
+    return writer, models_dir, exp_dir

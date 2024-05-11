@@ -36,7 +36,7 @@ class DatasetSplit(Dataset):
         return self.idxs[item], image, label
 
     def get_num_of_each_class(self, args):
-        class_sum = np.array([0] * args.n_classes)
+        class_sum = np.array([0] * args.num_classes)
         for idx in self.idxs:
             label = self.dataset.targets[idx]
             class_sum[label] += 1
@@ -48,7 +48,8 @@ class LocalUpdate(object):
     def __init__(self, args, id, dataset, idxs):
         self.args = args
         self.id = id
-        self.idxs = idxs
+        self.idxs = idxs[:int(0.8*len(idxs))]
+        self.idxs_val = idxs[int(0.8*len(idxs)):]
         self.local_dataset = DatasetSplit(dataset, idxs)
         self.class_num_list = self.local_dataset.get_num_of_each_class(self.args)
         logging.info(
@@ -63,8 +64,11 @@ class LocalUpdate(object):
     def train_LA(self, net, writer):
         net.train()
         # set the optimizer
-        self.optimizer = torch.optim.Adam(
-            net.parameters(), lr=self.lr, betas=(0.9, 0.999), weight_decay=5e-4)
+        self.optimizer = torch.optim.SGD(
+            net.parameters(), lr=self.lr, weight_decay=3e-4)
+        
+        # self.optimizer = torch.optim.Adam(
+        #     net.parameters(), lr=self.lr, betas=(0.9, 0.999), weight_decay=5e-4)
 
         # train and update
         epoch_loss = []
@@ -95,8 +99,10 @@ class LocalUpdate(object):
         student_net.train()
         teacher_net.eval()
         # set the optimizer
-        self.optimizer = torch.optim.Adam(
-            student_net.parameters(), lr=self.lr, betas=(0.9, 0.999), weight_decay=5e-4)
+        self.optimizer = torch.optim.SGD(
+            student_net.parameters(), lr=self.lr, weight_decay=3e-4)
+        # self.optimizer = torch.optim.Adam(
+        #     student_net.parameters(), lr=self.lr, betas=(0.9, 0.999), weight_decay=5e-4)
 
         # train and update
         epoch_loss = []

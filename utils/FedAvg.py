@@ -13,16 +13,20 @@ def FedAvg(w, dict_len):
     return w_avg
 
 
-def DaAgg(w, dict_len, clean_clients, noisy_clients):
+def DaAgg(w, dict_len, clean_clients, noisy_clients, user_id):
     client_weight = np.array(dict_len)
     client_weight = client_weight / client_weight.sum()
     distance = np.zeros(len(dict_len))
-    for n_idx in noisy_clients:
+    for itr_n, n_idx in enumerate(noisy_clients):
         dis = []
-        for c_idx in clean_clients:
-            dis.append(model_dist(w[n_idx], w[c_idx]))
-        distance[n_idx] = min(dis)
-    distance = distance / distance.max()
+        for itr_c, c_idx in enumerate(clean_clients):
+            dis.append(model_dist(w[itr_n], w[itr_c]))
+        if len(dis) == 0:
+            continue
+        distance[itr_n] = min(dis)
+    
+    epsilon = 0.0001
+    distance = (distance + epsilon) / (distance.max() + epsilon)
     client_weight = client_weight * np.exp(-distance)
     client_weight = client_weight / client_weight.sum()
     # print(client_weight)
