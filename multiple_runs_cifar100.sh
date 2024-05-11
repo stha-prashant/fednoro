@@ -4,7 +4,7 @@ robust_method=$"fednoro"
 dataset=$"cifar100"
 architecture=$"resnet34"
 alpha=$"5"
-epchs=$"300"
+epochs=$"1000"
 
 for seed in 1 2 3
 do
