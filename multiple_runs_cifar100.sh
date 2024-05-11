@@ -23,7 +23,7 @@ do
             export alpha;
             export seed;
             export epochs;
-            sbatch -J $EXPT -o $STD -t 00-12:00:00 -e $ERR $job_File
+            sbatch -J $EXPT -o $STD -t 1-00:00:00 -e $ERR $job_File
         done;
     done;
 
@@ -42,7 +42,7 @@ do
             export alpha;
             export seed;
             export epochs;
-            sbatch -J $EXPT -o $STD -t 00-12:00:00 -e $ERR $job_File
+            sbatch -J $EXPT -o $STD -t 1-00:00:00 -e $ERR $job_File
         done;
     done;   
 done
