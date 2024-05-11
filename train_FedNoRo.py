@@ -227,5 +227,7 @@ if __name__ == '__main__':
 	logging.info(BACC[-10:].mean())
 	logging.info("best:")
 	logging.info(BACC.max())
+	run['test/balanced_acc_max'].log(BACC.max())
+	run['test/balanced_acc_last5'].log(BACC[-5:].mean())
 
 	torch.cuda.empty_cache()
